@@ -17,7 +17,6 @@ void dmI2C::terminate() {
 uint8_t dmI2C::write(uint8_t address, uint8_t *buf, uint8_t num, uint8_t *bytesWritten) {
     uint8_t retVal = DMI2C_OK;
     uint8_t error;
-    uint8_t bufIndex = 0;
 
     *bytesWritten=0;
     if( buf == NULL || num == 0 ) {
@@ -35,15 +34,11 @@ uint8_t dmI2C::write(uint8_t address, uint8_t *buf, uint8_t num, uint8_t *bytesW
         }
     }
     else {
-        // this is normal operation when some data are actually need to be transfered to the device
-        // Arduino Wire lib defines BUFFER_LENGTH to limit the number of bytes to be transfered
-        // in single shot. The address byte is not put into buffer.
-        while ( num > 0 && retVal ==  DMI2C_OK ) {
+        if( retVal ==  DMI2C_OK ) {
             error = i2c->write( address<<1, (char *)buf, num, false );
             switch (error) {
                 case 0:
-                    *bytesWritten += num;
-                    bufIndex      += num;
+                    *bytesWritten = num;
                     num = 0;
                     break;
                 case 1:
