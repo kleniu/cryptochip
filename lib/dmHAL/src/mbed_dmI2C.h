@@ -13,8 +13,9 @@ class dmI2C {
     public:
         dmI2C();
         ~dmI2C();
+        Serial *ppc;
         // public methods
-        void     initialize(I2C *loci2c);  // method to start i2c interface, should be called once
+        void     initialize(I2C *loci2c, Serial *lppc); // method to start i2c interface, should be called once
         void     terminate();   // method to stop i2c interface, should be called once
         uint8_t  write(uint8_t address, uint8_t *buf, uint8_t num, uint8_t *bytesWritten); // write "num" of bytes from "buf" at "address"
         uint8_t  read(uint8_t address, uint8_t *buf, uint8_t num, uint8_t *bytesRead);  // read "num" bytes into "buf" from "address"

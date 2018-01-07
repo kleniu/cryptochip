@@ -7,8 +7,9 @@ dmI2C::dmI2C() {
 dmI2C::~dmI2C() {
 }
 
-void dmI2C::initialize(I2C *loci2c) {
+void dmI2C::initialize(I2C *loci2c, Serial *lppc) {
     i2c = loci2c;
+    ppc = lppc;
 }
 
 void dmI2C::terminate() {
@@ -67,7 +68,6 @@ uint8_t dmI2C::read(uint8_t address, uint8_t *buf, uint8_t num, uint8_t *bytesRe
             switch (error) {
                 case 0:
                     *bytesRead = num;
-                    num = 0;
                     break;
                 case 1:
                     retVal = DMI2C_ERR_NACK_DATA;
@@ -75,6 +75,8 @@ uint8_t dmI2C::read(uint8_t address, uint8_t *buf, uint8_t num, uint8_t *bytesRe
                 default:
                     retVal = DMI2C_ERR_OTHER;
             }
+            //ppc->printf("DEBUG: Address=%2X; num=%d; bytesRead=%d; error=%d\n\r", address, num, *bytesRead, error );
+            //for (int i=0; i<num; i++) ppc->printf("buf[%d]=%02X\n\r", i, buf[i]);
         }
     }
     return retVal;

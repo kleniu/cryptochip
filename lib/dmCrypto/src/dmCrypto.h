@@ -24,6 +24,10 @@
 #define DMCRYPTO_SHA_MWAITMS_RANDOM     50  // exec time for random number
 #define DMCRYPTO_SHA_MWAITMS_READ       4   // exec time for reading data
 
+#define DMCRYPTO_ECC_MWAITMS_DEVREV     1   // max execution time for DEVREV
+#define DMCRYPTO_ECC_MWAITMS_RANDOM     23  // exec time for random number
+#define DMCRYPTO_ECC_MWAITMS_READ       1   // exec time for reading data
+
 #define DMCRYPTO_INTERNAL_BUFMAXLEN     127
 
 struct ATSHA204A_ConfigZone {
@@ -60,6 +64,7 @@ class dmCrypto {
         ~dmCrypto();
         // public methods
         dmI2C   i2c;
+        Serial  *ppc;
 
         uint8_t buf[DMCRYPTO_INTERNAL_BUFMAXLEN];
         uint8_t bufDataSize;    // number of valid bytes in buf
@@ -69,7 +74,7 @@ class dmCrypto {
 
         ATSHA204A_ConfigZone    *ATSHA204AcfgZone;
 
-        void init(I2C *loci2c);
+        void init(I2C *loci2c, Serial *lppc);
         void scanI2Cbus();
         uint8_t deviceRevision(uint8_t deviceType, uint8_t address);
         uint8_t generateRandom(uint8_t deviceType, uint8_t address);
@@ -85,8 +90,11 @@ class dmCrypto {
         uint8_t wakeDevice(uint8_t address);
         uint8_t execCmd(uint8_t address, uint8_t *sendBuf, uint8_t sendBufLen, uint8_t *recBuf, uint8_t recBufLen, uint8_t execWait);
         uint8_t ATSHA204A_DevRev( uint8_t *locBuf, uint8_t locBufSize, uint8_t address );
+        uint8_t ATECC508A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address );
         uint8_t ATSHA204A_Random( uint8_t *locBuf, uint8_t locBufSize, uint8_t address);
+        uint8_t ATECC508A_Random( uint8_t *locBuf, uint8_t locBufSize, uint8_t address);
         uint8_t ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
+        uint8_t ATECC508A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
     private:
         uint8_t delBufByte(uint8_t *buffer, uint8_t index, uint8_t arraylen);
 };

@@ -4,7 +4,7 @@
 #include <mbed.h>
 
 #ifndef DMMENU_SIZE
-#define DMMENU_SIZE 5
+#define DMMENU_SIZE 10
 #endif
 
 #ifndef DMMENU_ITEM_TXTSIZE

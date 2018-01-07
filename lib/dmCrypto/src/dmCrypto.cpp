@@ -6,8 +6,9 @@ dmCrypto::dmCrypto() {
 dmCrypto::~dmCrypto() {
 }
 
-void dmCrypto::init(I2C *loci2c) {
-    i2c.initialize(loci2c);
+void dmCrypto::init(I2C *loci2c, Serial *lppc) {
+    i2c.initialize(loci2c, lppc);
+    ppc = lppc;
 }
 
 // TODO: to be changed!
@@ -182,6 +183,38 @@ uint8_t dmCrypto::ATSHA204A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t 
     return retVal;
 }
 
+uint8_t dmCrypto::ATECC508A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
+    uint8_t       retVal     = DMCRYPTO_OK;
+    const uint8_t txSize     = 8;
+    const uint8_t rxSize     = 7;
+
+    if( txSize > locBufSize ) {
+        retVal = DMCRYPTO_ERR_BFULL;
+    }
+
+    // prepare transmit buffer
+    if ( retVal == DMCRYPTO_OK ) {
+        locBuf[0] = 0x03;   // [command] word address/packet function
+        locBuf[1] = 0x07;   // [count] starting from [count] ending with [crc]
+        locBuf[2] = 0x30;   // [OPCODE] for Info
+        locBuf[3] = 0x00;   // [Param1] must be 0 for Revision
+        locBuf[4] = 0x00;   // [Param2] byte0 - must be 0
+        locBuf[5] = 0x00;   // [Param2] byte1 - must be 0
+        locBuf[6] = 0x00;   // [CRC] byte0 - to be calculated excluding [command]
+        locBuf[7] = 0x00;   // [CRC] byte1 - to be calculated
+
+        calcCRC( 5, &locBuf[1], &locBuf[6] );
+    }
+
+    // transmit buffer to get data
+    if ( retVal == DMCRYPTO_OK ) {
+        // we are sending 8 bytes and expect to receive 7 bytes max.
+        retVal = execCmd( address, locBuf, txSize, locBuf, rxSize, DMCRYPTO_ECC_MWAITMS_DEVREV );
+    }
+
+    return retVal;
+}
+
 uint8_t dmCrypto::deviceRevision(uint8_t deviceType, uint8_t address) {
     uint8_t retVal = DMCRYPTO_OK;
 
@@ -190,6 +223,7 @@ uint8_t dmCrypto::deviceRevision(uint8_t deviceType, uint8_t address) {
             retVal = ATSHA204A_DevRev(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATECC508A:
+            retVal = ATECC508A_DevRev(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -232,6 +266,38 @@ uint8_t dmCrypto::ATSHA204A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t 
     return retVal;
 }
 
+uint8_t dmCrypto::ATECC508A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
+    uint8_t retVal           = DMCRYPTO_OK;
+    const uint8_t txSize     = 8;
+    const uint8_t rxSize     = 35;
+
+    if( rxSize > locBufSize ) {
+        retVal = DMCRYPTO_ERR_BFULL;
+    }
+
+    // prepare transmit buffer
+    if ( retVal == DMCRYPTO_OK ) {
+        locBuf[0] = 0x03;   // [command] word address/packet function
+        locBuf[1] = 0x07;   // [count] starting from [count] ending with [crc]
+        locBuf[2] = 0x1B;   // [OPCODE] for RANDOM
+        locBuf[3] = 0x00;   // [Param1] 0b=0 will automaticaly update EEPROM seed, 1-7b must be 0
+        locBuf[4] = 0x00;   // [Param2] byte0 - must be 0
+        locBuf[5] = 0x00;   // [Param2] byte1 - must be 0
+        locBuf[6] = 0x00;   // [CRC] byte0 - to be calculated excluding [command]
+        locBuf[7] = 0x00;   // [CRC] byte1 - to be calculated
+
+        calcCRC( 5, &locBuf[1], &locBuf[6] );
+    }
+
+    // transmit buf[] to get data
+    if ( retVal == DMCRYPTO_OK ) {
+        retVal = execCmd( address, locBuf, txSize, locBuf, rxSize, DMCRYPTO_ECC_MWAITMS_RANDOM );
+    }
+
+    return retVal;
+}
+
+
 uint8_t dmCrypto::generateRandom(uint8_t deviceType, uint8_t address) {
     uint8_t retVal = DMCRYPTO_OK;
 
@@ -240,6 +306,7 @@ uint8_t dmCrypto::generateRandom(uint8_t deviceType, uint8_t address) {
             retVal = ATSHA204A_Random(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATECC508A:
+            retVal = ATECC508A_Random(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -301,6 +368,57 @@ uint8_t dmCrypto::ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t ad
     return retVal;
 }
 
+uint8_t dmCrypto::ATECC508A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd) {
+    uint8_t retVal           = DMCRYPTO_OK;
+    const uint8_t txSize     = 8;
+    const uint8_t rxSize     = 7;
+    const uint8_t rxSize_blk = 35;
+
+    if( blockRd == true && rxSize_blk > locBufSize ) {
+        retVal = DMCRYPTO_ERR_BFULL;
+    }
+
+    if( blockRd == false && txSize > locBufSize ) {
+        retVal = DMCRYPTO_ERR_BFULL;
+    }
+
+    // prepare transmit buffer
+    if ( retVal == DMCRYPTO_OK ) {
+        locBuf[0] = 0x03;   // [command] word address/packet function
+        locBuf[1] = 0x07;   // [count] starting from [count] ending with [crc]
+        locBuf[2] = 0x02;   // [OPCODE] for READ
+        // Param1
+        locBuf[3] = 0x00;
+        // b0-1 - zone
+        // b2-6 - must be 0
+        // b7   - If one, 32 bytes are read; otherwise 4 bytes are read. Must be zero if from OTP.
+        locBuf[3] = ( zone & 0x03 ) | ( blockRd << 7 );
+        // Param2 - byte0
+        locBuf[4] = 0x00;
+        // b0-2 - offset
+        // b3-6 - slot aka block
+        // b7   - must be 0
+        locBuf[4] = ( ( slot & 0x0F ) << 3 ) | ( offset & 0x07 );
+        // Param2 - byte1
+        locBuf[5] = 0x00;   // must be 0
+        locBuf[6] = 0x00;   // [CRC] byte0 - to be calculated excluding [command]
+        locBuf[7] = 0x00;   // [CRC] byte1 - to be calculated
+
+        calcCRC( 5, &locBuf[1], &locBuf[6] );
+    }
+
+    // transmit buf[] to get data
+    if ( retVal == DMCRYPTO_OK ) {
+        if( blockRd )
+            retVal = execCmd( address, locBuf, txSize, locBuf, rxSize_blk, DMCRYPTO_ECC_MWAITMS_READ );
+        else
+            retVal = execCmd( address, locBuf, txSize, locBuf, rxSize, DMCRYPTO_ECC_MWAITMS_READ );
+    }
+
+    return retVal;
+}
+
+
 uint8_t dmCrypto::read(uint8_t deviceType, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd) {
     uint8_t retVal = DMCRYPTO_OK;
 
@@ -309,6 +427,7 @@ uint8_t dmCrypto::read(uint8_t deviceType, uint8_t address, uint8_t zone, uint8_
             retVal = ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, zone, slot, offset, blockRd );
             break;
         case DMCRYPTO_ATECC508A:
+            retVal = ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, zone, slot, offset, blockRd );
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -351,6 +470,21 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
             }
             break;
         case DMCRYPTO_ATECC508A:
+            confLen=0;
+            for( i=0; i<3; i++) {
+                if ( retVal == DMCRYPTO_OK ) {
+                    retVal = ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, i, 0x00, true );
+                    memcpy( config+confLen, buf+1, buf[0]-3 );
+                    confLen+=buf[0]-3;
+                }
+            }
+            if( retVal == DMCRYPTO_OK ) {
+                buf[0]=confLen + 3; // length + crc1 + crc2
+                memcpy( buf+1, config, confLen );
+                buf[confLen + 1] = 0x0;
+                buf[confLen + 2] = 0x0;
+                calcCRC( confLen + 1, buf, buf + confLen + 1 );
+            }
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -360,164 +494,6 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
 
     return retVal;
 }
-
-/*
-
-uint8_t dmCrypto::ATSHA204A_GetCfg(uint8_t address) {
-    uint8_t retCode, slot, offset, firstByte;
-
-    retCode = DMCRYPTO_OK;
-
-    return retCode;
-}
-
-uint8_t dmCrypto::ATSHA204A_GetSlotCfg(uint8_t address, uint8_t slot) {
-    uint8_t retCode, slot, offset, firstByte;
-
-    retCode = DMCRYPTO_OK;
-
-    switch (slot) {
-        case 0:
-            slot = 0x00; offset = 0x05; firstByte = 0x00;
-            break;
-        case 1:
-            slot = 0x00; offset = 0x05; firstByte = 0x02;
-            break;
-        case 2:
-            slot = 0x00; offset = 0x06; firstByte = 0x00;
-            break;
-        case 3:
-            slot = 0x00; offset = 0x06; firstByte = 0x02;
-            break;
-        case 4:
-            slot = 0x00; offset = 0x07; firstByte = 0x00;
-            break;
-        case 5:
-            slot = 0x00; offset = 0x07; firstByte = 0x02;
-            break;
-        case 6:
-            slot = 0x01; offset = 0x00; firstByte = 0x00;
-            break;
-        case 7:
-            slot = 0x01; offset = 0x00; firstByte = 0x02;
-            break;
-        case 8:
-            slot = 0x01; offset = 0x01; firstByte = 0x00;
-            break;
-        case 9:
-            slot = 0x01; offset = 0x01; firstByte = 0x02;
-            break;
-        case 10:
-            slot = 0x01; offset = 0x02; firstByte = 0x00;
-            break;
-        case 11:
-            slot = 0x01; offset = 0x02; firstByte = 0x02;
-            break;
-        case 12:
-            slot = 0x01; offset = 0x03; firstByte = 0x00;
-            break;
-        case 13:
-            slot = 0x01; offset = 0x03; firstByte = 0x02;
-            break;
-        case 14:
-            slot = 0x01; offset = 0x04; firstByte = 0x00;
-            break;
-        case 15:
-            slot = 0x01; offset = 0x04; firstByte = 0x02;
-            break;
-        default:
-            retCode = DMCRYPTO_ERR_PARSE;
-    }
-
-    return retCode;
-}
-
-void dmCrypto::mReadATSHA204Aserial() {
-    Serial.println(" *** Read ATSHA204A serial number *** ");
-    byte txBuff[8];
-    byte rxBuff[48];
-    byte error, i;
-
-    // ****************************** NOTE 2 ******************************
-    // Buffer:
-    // | Pkt Fnc 1B | Size 1B | Opcode 1B | Param1 1B | Param2 2B | CRC 2B |
-    // Param 1 [1B] - Zone + Block size to be read (4 bytes or 32 bytes)
-    // |b7|b6|b5|b4|b3|b2|b1|b0|
-    //                     \--\---> 00    - Config Zone
-    //      \--\--\--\--\---------> 00000 - must be always 0
-    //   \------------------------> 1     - read block of 32 bytes
-    // Param 2 [2B]- Address of first word (W) to be read within the zone
-    //    BYTE0 first to be tx ||  BYTE 1 second to be tx
-    // |b7|b6|b5|b4|b3|b2|b1|b0||b7|b6|b5|b4|b3|b2|b1|b0|
-    //                            \--\--\--\--\--\--\--\--> must be 0x00
-    //                  \--\--\---> 000   - offset - we are reading 1st Word
-    //      \--\--\--\------------> 0000  - block - we are reading 1st Block
-    //   \------------------------> 0     - must be allways 0
-    // ********************************************************************
-
-    // default Slot0 Configuration:
-    // 0x0F 0x80
-    // 00001111 00010000
-    //
-
-    txBuff[0] = 0x03;   // [command] word address/packet function
-    txBuff[1] = 0x07;   // [count] starting from [count] ending with [crc]
-    txBuff[2] = 0x02;   // [OPCODE] for Read
-    txBuff[3] = 0x80;   // [Param1] Zone + Block size to be read
-    txBuff[4] = 0x00;   // [Param2] Address
-    txBuff[5] = 0x00;   // [Param2] byte1 - must be 0
-    txBuff[6] = 0x00;   // [CRC] byte0 - to be calculated excluding [command]
-    txBuff[7] = 0x00;   // [CRC] byte1 - to be calculated
-
-    crypto.calcCRC( 5, &txBuff[1], &txBuff[6] );
-
-    // wake device
-    dmWakeDevices();
-
-    Wire.beginTransmission( 0x64 );
-    Wire.write( txBuff, 8 );
-    error = Wire.endTransmission();
-    if ( error == 0 ) {
-        // send OK
-        Serial.println( "Send OK" );
-
-        // wait for command completition
-        delay(4); // max execution time for Read p.42
-
-        // receive data from the device
-        Serial.print("Received : ");
-
-        // first read 1 byte - length
-        Wire.requestFrom( 0x64, 0x01 ); // request 1 byte from device 0x64
-        if( Wire.available() ) rxBuff[0] = Wire.read();
-        else                   rxBuff[0] = 0x00;
-
-        // second read remaining bytes
-        if( rxBuff[0] ) {
-            i=1;
-            Wire.requestFrom( 0x64, rxBuff[0]-1 ); // request 8 bytes from device 0x64
-            while( Wire.available() ) {   // slave may send less than requested
-                rxBuff[i++] = Wire.read();    // receive a byte as character
-            }
-            // now print what you done
-            for ( i=0; i<rxBuff[0]; i++) {
-                if (rxBuff[i]<16)  Serial.print("0x0");
-                else               Serial.print("0x");
-                Serial.print(rxBuff[i],HEX);
-                Serial.print(" ");
-            }
-        }
-
-        Serial.println();
-    }
-    else {
-        // send ERR
-        Serial.print("send error = ");
-        Serial.println(error);
-        Serial.println( "Send ERR. Exiting!" );
-    }
-}
-*/
 
 
 uint8_t dmCrypto::delBufByte(uint8_t *buffer, uint8_t index, uint8_t arraylen) {
