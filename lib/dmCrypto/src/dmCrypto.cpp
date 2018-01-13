@@ -151,7 +151,7 @@ uint8_t dmCrypto::execCmd(uint8_t address, uint8_t *sendBuf, uint8_t sendBufLen,
 
 
 
-uint8_t dmCrypto::ATSHA204A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
+uint8_t dmCrypto::atomic_ATSHA204A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
     uint8_t       retVal     = DMCRYPTO_OK;
     const uint8_t txSize     = 8;
     const uint8_t rxSize     = 7;
@@ -183,7 +183,7 @@ uint8_t dmCrypto::ATSHA204A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t 
     return retVal;
 }
 
-uint8_t dmCrypto::ATECC508A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
+uint8_t dmCrypto::atomic_ATECC508A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
     uint8_t       retVal     = DMCRYPTO_OK;
     const uint8_t txSize     = 8;
     const uint8_t rxSize     = 7;
@@ -220,10 +220,10 @@ uint8_t dmCrypto::deviceRevision(uint8_t deviceType, uint8_t address) {
 
     switch( deviceType ) {
         case DMCRYPTO_ATSHA204A:
-            retVal = ATSHA204A_DevRev(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
+            retVal = atomic_ATSHA204A_DevRev(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATECC508A:
-            retVal = ATECC508A_DevRev(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
+            retVal = atomic_ATECC508A_DevRev(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -235,7 +235,7 @@ uint8_t dmCrypto::deviceRevision(uint8_t deviceType, uint8_t address) {
 }
 
 
-uint8_t dmCrypto::ATSHA204A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
+uint8_t dmCrypto::atomic_ATSHA204A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
     uint8_t retVal           = DMCRYPTO_OK;
     const uint8_t txSize     = 8;
     const uint8_t rxSize     = 35;
@@ -266,7 +266,7 @@ uint8_t dmCrypto::ATSHA204A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t 
     return retVal;
 }
 
-uint8_t dmCrypto::ATECC508A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
+uint8_t dmCrypto::atomic_ATECC508A_Random(uint8_t *locBuf, uint8_t locBufSize, uint8_t address ) {
     uint8_t retVal           = DMCRYPTO_OK;
     const uint8_t txSize     = 8;
     const uint8_t rxSize     = 35;
@@ -303,10 +303,10 @@ uint8_t dmCrypto::generateRandom(uint8_t deviceType, uint8_t address) {
 
     switch( deviceType ) {
         case DMCRYPTO_ATSHA204A:
-            retVal = ATSHA204A_Random(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
+            retVal = atomic_ATSHA204A_Random(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATECC508A:
-            retVal = ATECC508A_Random(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
+            retVal = atomic_ATECC508A_Random(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address );
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -318,7 +318,7 @@ uint8_t dmCrypto::generateRandom(uint8_t deviceType, uint8_t address) {
 }
 
 
-uint8_t dmCrypto::ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd) {
+uint8_t dmCrypto::atomic_ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd) {
     uint8_t retVal           = DMCRYPTO_OK;
     const uint8_t txSize     = 8;
     const uint8_t rxSize     = 7;
@@ -368,7 +368,7 @@ uint8_t dmCrypto::ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t ad
     return retVal;
 }
 
-uint8_t dmCrypto::ATECC508A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd) {
+uint8_t dmCrypto::atomic_ATECC508A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd) {
     uint8_t retVal           = DMCRYPTO_OK;
     const uint8_t txSize     = 8;
     const uint8_t rxSize     = 7;
@@ -424,10 +424,10 @@ uint8_t dmCrypto::read(uint8_t deviceType, uint8_t address, uint8_t zone, uint8_
 
     switch( deviceType ) {
         case DMCRYPTO_ATSHA204A:
-            retVal = ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, zone, slot, offset, blockRd );
+            retVal = atomic_ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, zone, slot, offset, blockRd );
             break;
         case DMCRYPTO_ATECC508A:
-            retVal = ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, zone, slot, offset, blockRd );
+            retVal = atomic_ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, zone, slot, offset, blockRd );
             break;
         case DMCRYPTO_ATAES132A:
             break;
@@ -449,14 +449,14 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
             confLen=0;
             for( i=0; i<2; i++) {
                 if ( retVal == DMCRYPTO_OK ) {
-                    retVal = ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, i, 0x00, true );
+                    retVal = atomic_ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, i, 0x00, true );
                     memcpy( config+confLen, buf+1, buf[0]-3 );
                     confLen+=buf[0]-3;
                 }
             }
             for( i=0; i<6; i++) {
                 if ( retVal == DMCRYPTO_OK ) {
-                    retVal = ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, 0x02, i, false );
+                    retVal = atomic_ATSHA204A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, 0x02, i, false );
                     memcpy( config+confLen, buf+1, buf[0]-3 );
                     confLen+=buf[0]-3;
                 }
@@ -473,7 +473,7 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
             confLen=0;
             for( i=0; i<3; i++) {
                 if ( retVal == DMCRYPTO_OK ) {
-                    retVal = ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, i, 0x00, true );
+                    retVal = atomic_ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, i, 0x00, true );
                     memcpy( config+confLen, buf+1, buf[0]-3 );
                     confLen+=buf[0]-3;
                 }
@@ -495,6 +495,138 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
     return retVal;
 }
 
+uint8_t dmCrypto::atomic_ATECC508A_SHA(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t mode, uint8_t key, uint16_t msglen ) {
+    uint8_t retVal = DMCRYPTO_OK;
+    uint8_t tmpBuf[64];
+    uint8_t txSize     = 0x00;
+    uint8_t rxSize     = 0x00;
+
+
+    switch(mode) {
+        case DMCRYPTO_ECC_SHACMDMODE_SHASTART:
+            if ( msglen == 0 ) {
+              //ppc->printf("DEBUG: sha start;\n\r");
+              memset(locBuf, 0x00, locBufSize);
+              locBuf[0] = 0x03;   // [command] word address/packet function
+              locBuf[1] = 0x07; // packet size
+              locBuf[2] = 0x47; // [OPCODE] for SHA
+              locBuf[3] = DMCRYPTO_ECC_SHACMDMODE_SHASTART; // Param1
+              locBuf[4] = 0x00; // Param2[0] must be zero (length)
+              locBuf[5] = 0x00; // Param2[1] must be zero (length)
+              locBuf[6] = 0x00; // CRC[0]
+              locBuf[7] = 0x00; // CRC[1]
+              calcCRC( locBuf[1]-2 , &locBuf[1], &locBuf[6] );
+              txSize = 8;
+              rxSize = 4;
+            }
+            else {
+              retVal = DMCRYPTO_ERR_BADPARAM;
+            }
+            break;
+        case DMCRYPTO_ECC_SHACMDMODE_UPDATE:
+            if( locBufSize >= 64 + 7 && msglen == 64 ) {
+              //ppc->printf("DEBUG: sha update;\n\r");
+              memcpy( tmpBuf, locBuf, 64 );
+              memset( locBuf, 0x00, locBufSize);
+              locBuf[0] = 0x03;
+              locBuf[1] = 0x47; // packet size 64+7 = 71
+              locBuf[2] = 0x47; // [OPCODE] for SHA
+              locBuf[3] = DMCRYPTO_ECC_SHACMDMODE_UPDATE; // Param1
+              locBuf[4] = 0x40; // Param2[0] length
+              locBuf[5] = 0x00; // Param2[1] it must be 0 since total length can be max 0xFF
+              memcpy( &locBuf[6], tmpBuf, 64);
+              locBuf[70] = 0x00; // CRC[0]
+              locBuf[71] = 0x00; // CRC[1]
+              calcCRC( locBuf[1]-2 , &locBuf[1], &locBuf[70] );
+              txSize = 72; // 64+8
+              rxSize = 4;
+            }
+            else {
+              retVal = DMCRYPTO_ERR_BADPARAM;
+            }
+            break;
+        case DMCRYPTO_ECC_SHACMDMODE_SHAEND:
+            if( locBufSize >= msglen + 7 && msglen < 64 ){
+              //ppc->printf("DEBUG: sha end;\n\r");
+              memcpy( tmpBuf, locBuf, msglen );
+              memset( locBuf, 0x00, locBufSize);
+              locBuf[0] = 0x03;
+              locBuf[1] = msglen+7; // packet size
+              locBuf[2] = 0x47; // [OPCODE] for SHA
+              locBuf[3] = DMCRYPTO_ECC_SHACMDMODE_SHAEND; // Param1
+              locBuf[4] = msglen; // Param2[0] length
+              locBuf[5] = 0x00; // Param2[1] it must be 0 since total length can be max 0xFF
+              memcpy( &locBuf[6], tmpBuf, msglen);
+              locBuf[6+msglen] = 0x00; // CRC[0]
+              locBuf[7+msglen] = 0x00; // CRC[1]
+              calcCRC( locBuf[1]-2 , &locBuf[1], &locBuf[6+msglen] );
+              txSize = 8 + msglen;
+              rxSize = 35; // 1B(length) + 32B(digest) + 2B (CRC)
+            }
+            else {
+              retVal = DMCRYPTO_ERR_BADPARAM;
+            }
+            break;
+        case DMCRYPTO_ECC_SHACMDMODE_HMACSTART:
+            break;
+        case DMCRYPTO_ECC_SHACMDMODE_HMACEND:
+            break;
+        case DMCRYPTO_ECC_SHACMDMODE_PUBLIC:
+            break;
+        default:
+            retVal = DMCRYPTO_ERR_BADPARAM;
+    }
+
+    if( retVal==DMCRYPTO_OK) {
+        retVal = execCmd( address, locBuf, txSize, locBuf, rxSize, DMCRYPTO_ECC_MWAITMS_SHA );
+    }
+
+    return retVal;
+}
+
+uint8_t dmCrypto::genSHA256( uint8_t deviceType, uint8_t address, uint8_t *data, uint16_t datalen ) {
+    uint8_t retVal = DMCRYPTO_OK;
+    uint16_t index;
+    bool exitLoop = false;
+
+    switch( deviceType ) {
+        case DMCRYPTO_ATSHA204A:
+            break;
+        case DMCRYPTO_ATECC508A:
+            if( datalen > 0 ) {
+              retVal = atomic_ATECC508A_SHA(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, DMCRYPTO_ECC_SHACMDMODE_SHASTART, 0x00, 0x00 );
+              if( retVal == DMCRYPTO_OK ) {
+                index=0;
+                exitLoop = false;
+                while( exitLoop == false ) {
+                  if( datalen >= 64 ) {
+                    memcpy( buf, &data[index], 64);
+                    retVal = atomic_ATECC508A_SHA(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, DMCRYPTO_ECC_SHACMDMODE_UPDATE, 0x00, 64 );
+                    if( retVal != DMCRYPTO_OK ) {
+                      exitLoop = true; // exit while
+                    }
+                    index+=64; datalen-=64;
+                  }
+                  else {
+                    memcpy( buf, &data[index], datalen );
+                    retVal = atomic_ATECC508A_SHA(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, DMCRYPTO_ECC_SHACMDMODE_SHAEND, 0x00, datalen );
+                    index+=datalen; datalen=0;
+                    exitLoop = true;
+                  } // else
+                } // while
+              }
+            }
+            else {
+              retVal = DMCRYPTO_ERR_BADPARAM;
+            }
+            break;
+        case DMCRYPTO_ATAES132A:
+            retVal = DMCRYPTO_ERR_NOSUPPORT;
+            break;
+    }
+
+    return retVal;
+}
 
 uint8_t dmCrypto::delBufByte(uint8_t *buffer, uint8_t index, uint8_t arraylen) {
     uint8_t retVal = 0x00;

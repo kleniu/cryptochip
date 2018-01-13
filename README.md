@@ -179,3 +179,19 @@ To check ATMEL CRC-16 set folowing parameters:
 
 Command.   
 ```
+
+## TODO:
+calculate SHA256 - DONE!
+- cmd 0x47 for ATECC208A
+    * input: msg, msglen
+    * output: sha256 + store it in TempKey
+
+calculate HMAC
+- cmd 0x47 for ATECC208A
+    * input: msg, msglen, keyID
+    * output: HMAC + store it in TempKey
+
+sign with ECDSA
+- cmd 0x41 for ATECC208A
+    * input: keyID
+    * output: signed digest from TempKey

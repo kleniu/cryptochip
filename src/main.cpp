@@ -60,6 +60,20 @@ void printResultBytes(uint8_t *buf) {
     pc.printf("CRC(0x%02X 0x%02X)", buf[i-2], buf[i-1]);
 }
 
+void printResultString(uint8_t *buf) {
+    uint8_t i;
+    // print len
+    pc.printf("LEN(0x%02X)\n\r", buf[0]);
+
+    // print data
+    for ( i=1; i<buf[0]-2; i++ ) {
+        pc.printf("%02x", buf[i]);
+    }
+    pc.printf("\n\r");
+    i = buf[0];
+    pc.printf("CRC(0x%02X 0x%02X)", buf[i-2], buf[i-1]);
+}
+
 void mScanI2Cbus() {
     pc.printf(" *** Scanning i2c bus. *** \n\r");
     unsigned char i, devAddress;
@@ -132,9 +146,9 @@ void mReadATSHA204Adata() {
     unsigned char error, zone, slot, offset, blockRd;
     pc.printf(" *** Read ATSHA204A data *** \n\r");
 
-    zone    = menu.getNumber( "Enter zone number : " );
-    slot    = menu.getNumber( "Enter slot number : " );
-    offset  = menu.getNumber( "Enter offset      : " );
+    zone    = menu.getDigit( "Enter zone number : " );
+    slot    = menu.getDigit( "Enter slot number : " );
+    offset  = menu.getDigit( "Enter offset      : " );
     blockRd = menu.getBool(   "32B read (y/N)    : ", 'y');
 
     /////////// reads ATSHA204A data /////////
@@ -201,9 +215,9 @@ void mReadATECC508Adata() {
     unsigned char error, zone, slot, offset, blockRd;
     pc.printf(" *** Read ATECC508A data *** \n\r");
 
-    zone    = menu.getNumber( "Enter zone number : " );
-    slot    = menu.getNumber( "Enter slot number : " );
-    offset  = menu.getNumber( "Enter offset      : " );
+    zone    = menu.getDigit( "Enter zone number : " );
+    slot    = menu.getDigit( "Enter slot number : " );
+    offset  = menu.getDigit( "Enter offset      : " );
     blockRd = menu.getBool(   "32B read (y/N)    : ", 'y');
 
     /////////// reads ATSHA204A data /////////
@@ -234,6 +248,26 @@ void mReadATECC508Aconfig() {
     }
 }
 
+void mATECC508AgenSHA() {
+    unsigned char error = DMCRYPTO_OK;
+    uint16_t len = 0;
+
+    pc.printf(" *** ATECC508A generate SHA256 *** \n\r");
+    uint8_t data[512];
+    len = menu.getString("Enter string value : ", data, 512);
+
+    /////////// reads ATSHA204A data /////////
+    error = crypto.genSHA256( DMCRYPTO_ATECC508A, 0x60, data, len );
+    //////////////////////////////////////////
+
+    if ( error != DMCRYPTO_OK ) {
+        pc.printf("ERR cannot generate SHA256 ATECC508A; error=0x%02X", error);
+    }
+    else {
+        printResultString(crypto.buf);
+    }
+}
+
 int main() {
   myled=0;
   pc.baud( 115200 );
@@ -253,6 +287,7 @@ int main() {
   menu.addItem( '7', "ATECC508A - Generate random.", mReadATECC508Arandom );
   menu.addItem( '8', "ATECC508A - Read data.", mReadATECC508Adata );
   menu.addItem( '9', "ATECC508A - Read config.", mReadATECC508Aconfig );
+  menu.addItem( 'a', "ATECC508A - Generate SHA256.", mATECC508AgenSHA );
 
 
   while(1) {

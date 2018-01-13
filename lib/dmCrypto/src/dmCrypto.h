@@ -6,14 +6,16 @@
 #define DMCRYPTO_ATECC508A    0x01
 #define DMCRYPTO_ATAES132A    0x02
 
-#define DMCRYPTO_OK           0x00
-#define DMCRYPTO_ERR_WAKE     0x21
-#define DMCRYPTO_ERR_SEND     0x22
-#define DMCRYPTO_ERR_RECEIVE  0x23
-#define DMCRYPTO_ERR_CRC      0x24
-#define DMCRYPTO_ERR_BFULL    0x25
-#define DMCRYPTO_ERR_PARSE    0x26 // e.g. when read Config zone Slot 3 with 32 byte read
-#define DMCRYPTO_ERR_DEVTYPE  0x27
+#define DMCRYPTO_OK            0x00
+#define DMCRYPTO_ERR_WAKE      0x21
+#define DMCRYPTO_ERR_SEND      0x22
+#define DMCRYPTO_ERR_RECEIVE   0x23
+#define DMCRYPTO_ERR_CRC       0x24
+#define DMCRYPTO_ERR_BFULL     0x25
+#define DMCRYPTO_ERR_PARSE     0x26 // e.g. when read Config zone Slot 3 with 32 byte read
+#define DMCRYPTO_ERR_DEVTYPE   0x27
+#define DMCRYPTO_ERR_BADPARAM  0x28
+#define DMCRYPTO_ERR_NOSUPPORT 0x29
 
 #define DMCRYPTO_SHA_CHECKMAC_MISCOMPARE    0x01
 #define DMCRYPTO_SHA_ERR_PARSE              0x03
@@ -27,6 +29,15 @@
 #define DMCRYPTO_ECC_MWAITMS_DEVREV     1   // max execution time for DEVREV
 #define DMCRYPTO_ECC_MWAITMS_RANDOM     23  // exec time for random number
 #define DMCRYPTO_ECC_MWAITMS_READ       1   // exec time for reading data
+#define DMCRYPTO_ECC_MWAITMS_SHA        9   // exec time for SHA/HMAC
+
+// modes used ad P1 in SHA command with ATECC508A chip
+#define DMCRYPTO_ECC_SHACMDMODE_SHASTART  0x00
+#define DMCRYPTO_ECC_SHACMDMODE_UPDATE    0x01
+#define DMCRYPTO_ECC_SHACMDMODE_SHAEND    0x02
+#define DMCRYPTO_ECC_SHACMDMODE_PUBLIC    0x03
+#define DMCRYPTO_ECC_SHACMDMODE_HMACSTART 0x04
+#define DMCRYPTO_ECC_SHACMDMODE_HMACEND   0x05
 
 #define DMCRYPTO_INTERNAL_BUFMAXLEN     127
 
@@ -80,6 +91,7 @@ class dmCrypto {
         uint8_t generateRandom(uint8_t deviceType, uint8_t address);
         uint8_t read(          uint8_t deviceType, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
         uint8_t readConfig(    uint8_t deviceType, uint8_t address );
+        uint8_t genSHA256(     uint8_t deviceType, uint8_t address, uint8_t *data, uint16_t datalen );
 
         //uint8_t ATSHA204A_GetCfg(uint8_t address);
         //uint8_t ATSHA204A_GetSlotCfg(uint8_t address, uint8_t slot);
@@ -89,12 +101,15 @@ class dmCrypto {
     protected:
         uint8_t wakeDevice(uint8_t address);
         uint8_t execCmd(uint8_t address, uint8_t *sendBuf, uint8_t sendBufLen, uint8_t *recBuf, uint8_t recBufLen, uint8_t execWait);
-        uint8_t ATSHA204A_DevRev( uint8_t *locBuf, uint8_t locBufSize, uint8_t address );
-        uint8_t ATECC508A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address );
-        uint8_t ATSHA204A_Random( uint8_t *locBuf, uint8_t locBufSize, uint8_t address);
-        uint8_t ATECC508A_Random( uint8_t *locBuf, uint8_t locBufSize, uint8_t address);
-        uint8_t ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
-        uint8_t ATECC508A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
+        // ATSHA204A
+        uint8_t atomic_ATSHA204A_DevRev( uint8_t *locBuf, uint8_t locBufSize, uint8_t address );
+        uint8_t atomic_ATSHA204A_Random( uint8_t *locBuf, uint8_t locBufSize, uint8_t address);
+        uint8_t atomic_ATSHA204A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
+        // ATECC508A
+        uint8_t atomic_ATECC508A_DevRev(uint8_t *locBuf, uint8_t locBufSize, uint8_t address );
+        uint8_t atomic_ATECC508A_Random( uint8_t *locBuf, uint8_t locBufSize, uint8_t address);
+        uint8_t atomic_ATECC508A_Read(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t zone, uint8_t slot, uint8_t offset, uint8_t blockRd);
+        uint8_t atomic_ATECC508A_SHA(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t mode, uint8_t key, uint16_t msglen);
     private:
         uint8_t delBufByte(uint8_t *buffer, uint8_t index, uint8_t arraylen);
 };

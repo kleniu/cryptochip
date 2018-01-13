@@ -87,7 +87,7 @@ void dmMenu::addItem(char index, const char *text, void (*itemFunction)() ) {
     }
 }
 
-int8_t dmMenu::getNumber(const char *promptMsg) {
+int8_t dmMenu::getDigit(const char *promptMsg) {
     int8_t num = -1;
 
     pc->printf(promptMsg);
@@ -119,6 +119,25 @@ bool dmMenu::getBool(const char *promptMsg, char trueChar ) {
     return retVal;
 }
 
+int16_t dmMenu::getString(const char *promtMsg, uint8_t *buf, uint16_t buflen) {
+  int16_t i = 0;
+  int8_t ch = 0;
+
+  pc->printf("%s", promtMsg);
+  while( i<buflen-1 && ch!='\n' && ch!='\r' ) {
+    ch = pc->getc();
+    //printf("\n\r%03d",ch);
+    if( ( ch >= '0' && ch <= '9' ) ||
+        ( ch >= 'a' && ch <= 'z' ) ||
+        ( ch >= 'A' && ch <= 'Z' ) ) {
+      pc->printf("%c", ch);
+      buf[i++] = ch;
+    }
+  }
+  if( i!=0 ) buf[i]=0x00;
+  pc->printf("\n\r");
+  return i;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // private methods
@@ -132,7 +151,7 @@ uint8_t dmMenu::readPrompt() {
 
     while( pc->readable() > 0 ) pc->getc();
 
-    if( !isDigit(retChar) ) {
+    if( !isDigit(retChar) && !isAlpha(retChar) ) {
         retChar = '0';
     }
     return retChar;
@@ -141,6 +160,10 @@ uint8_t dmMenu::readPrompt() {
 
 uint8_t dmMenu::isDigit(uint8_t ch) {
         return (ch >= '0') && (ch <= '9');
+}
+
+uint8_t dmMenu::isAlpha(uint8_t ch) {
+  return ((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'));
 }
 
 uint8_t dmMenu::getStrLength(char *text) {

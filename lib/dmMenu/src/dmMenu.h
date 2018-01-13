@@ -27,11 +27,13 @@ class dmMenu {
         void setHeader(const char *text);
         void addItem(char index, const char *text, void (*itemFunction)() );
         void display();
-        int8_t getNumber(const char *promptMsg);
+        int8_t getDigit(const char *promptMsg);
         bool getBool(const char *promptMsg, char trueChar );
+        int16_t getString(const char *promtMsg, uint8_t *buf, uint16_t buflen);
     private:
         Serial *pc;
         uint8_t isDigit(uint8_t ch);
+        uint8_t isAlpha(uint8_t ch);
         uint8_t getStrLength(char *text);
         uint8_t strCopy(const char *src, char *des);
         uint8_t readPrompt();
