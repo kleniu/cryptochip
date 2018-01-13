@@ -182,16 +182,16 @@ Command.
 
 ## TODO:
 calculate SHA256 - DONE!
-- cmd 0x47 for ATECC208A
+- cmd 0x47 for ATECC508A
     * input: msg, msglen
     * output: sha256 + store it in TempKey
 
 calculate HMAC
-- cmd 0x47 for ATECC208A
+- cmd 0x47 for ATECC508A
     * input: msg, msglen, keyID
     * output: HMAC + store it in TempKey
 
 sign with ECDSA
-- cmd 0x41 for ATECC208A
+- cmd 0x41 for ATECC508A
     * input: keyID
     * output: signed digest from TempKey
