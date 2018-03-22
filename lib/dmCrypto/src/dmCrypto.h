@@ -39,7 +39,8 @@
 #define DMCRYPTO_ECC_SHACMDMODE_HMACSTART 0x04
 #define DMCRYPTO_ECC_SHACMDMODE_HMACEND   0x05
 
-#define DMCRYPTO_INTERNAL_BUFMAXLEN     127
+#define DMCRYPTO_INTERNAL_BUFMAXLEN     128
+#define DMCRYPTO_INTERNAL_TMPBUFMAXLEN  64
 
 struct ATSHA204A_ConfigZone {
     // slot 0x01
@@ -112,6 +113,7 @@ class dmCrypto {
         uint8_t atomic_ATECC508A_SHA(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t mode, uint8_t key, uint16_t msglen);
     private:
         uint8_t delBufByte(uint8_t *buffer, uint8_t index, uint8_t arraylen);
+        uint8_t tmpBuf[DMCRYPTO_INTERNAL_TMPBUFMAXLEN];
 };
 
 #endif

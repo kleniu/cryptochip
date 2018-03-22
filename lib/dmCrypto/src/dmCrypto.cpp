@@ -74,7 +74,7 @@ uint8_t dmCrypto::wakeDevice( uint8_t address ) {
     // TODO: handle already awaken device !!!
     if( i2c.write( address, NULL, 0, NULL) == DMI2C_OK ) {
         // the device is already awaken
-        // let's but it to idle mode to preserve data
+        // let's put it to idle mode to preserve data
         wakeBuf[0] = 0x02; // idle command
         i2c.write(address, wakeBuf, 1, &i);
         // now we are ready to wake it up, so the watchdog will be reseted
@@ -440,7 +440,7 @@ uint8_t dmCrypto::read(uint8_t deviceType, uint8_t address, uint8_t zone, uint8_
 
 uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
     uint8_t retVal = DMCRYPTO_OK;
-    uint8_t config[88+1+2];
+    uint8_t config[128+1+2]; // required for ECC
     uint8_t confLen=0;
     uint8_t i=0;
 
@@ -471,7 +471,7 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
             break;
         case DMCRYPTO_ATECC508A:
             confLen=0;
-            for( i=0; i<3; i++) {
+            for( i=0; i<4; i++) {
                 if ( retVal == DMCRYPTO_OK ) {
                     retVal = atomic_ATECC508A_Read(buf, DMCRYPTO_INTERNAL_BUFMAXLEN, address, 0x00, i, 0x00, true );
                     memcpy( config+confLen, buf+1, buf[0]-3 );
@@ -497,9 +497,8 @@ uint8_t dmCrypto::readConfig( uint8_t deviceType, uint8_t address ) {
 
 uint8_t dmCrypto::atomic_ATECC508A_SHA(uint8_t *locBuf, uint8_t locBufSize, uint8_t address, uint8_t mode, uint8_t key, uint16_t msglen ) {
     uint8_t retVal = DMCRYPTO_OK;
-    uint8_t tmpBuf[64];
-    uint8_t txSize     = 0x00;
-    uint8_t rxSize     = 0x00;
+    uint8_t txSize = 0x00;
+    uint8_t rxSize = 0x00;
 
 
     switch(mode) {
@@ -524,7 +523,7 @@ uint8_t dmCrypto::atomic_ATECC508A_SHA(uint8_t *locBuf, uint8_t locBufSize, uint
             }
             break;
         case DMCRYPTO_ECC_SHACMDMODE_UPDATE:
-            if( locBufSize >= 64 + 7 && msglen == 64 ) {
+            if( locBufSize >= 64 + 7 && msglen == 64 && DMCRYPTO_INTERNAL_TMPBUFMAXLEN >= 64 ) {
               //ppc->printf("DEBUG: sha update;\n\r");
               memcpy( tmpBuf, locBuf, 64 );
               memset( locBuf, 0x00, locBufSize);
@@ -546,7 +545,7 @@ uint8_t dmCrypto::atomic_ATECC508A_SHA(uint8_t *locBuf, uint8_t locBufSize, uint
             }
             break;
         case DMCRYPTO_ECC_SHACMDMODE_SHAEND:
-            if( locBufSize >= msglen + 7 && msglen < 64 ){
+            if( locBufSize >= msglen + 7 && msglen < 64 && DMCRYPTO_INTERNAL_TMPBUFMAXLEN >= msglen ){
               //ppc->printf("DEBUG: sha end;\n\r");
               memcpy( tmpBuf, locBuf, msglen );
               memset( locBuf, 0x00, locBufSize);

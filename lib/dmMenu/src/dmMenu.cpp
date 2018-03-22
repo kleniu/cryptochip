@@ -129,7 +129,8 @@ int16_t dmMenu::getString(const char *promtMsg, uint8_t *buf, uint16_t buflen) {
     //printf("\n\r%03d",ch);
     if( ( ch >= '0' && ch <= '9' ) ||
         ( ch >= 'a' && ch <= 'z' ) ||
-        ( ch >= 'A' && ch <= 'Z' ) ) {
+        ( ch >= 'A' && ch <= 'Z' ) ||
+        ( ch == ' ' || ch == '-' || ch == '_' || ch == '/' || ch == '+' || ch == '=' )) {
       pc->printf("%c", ch);
       buf[i++] = ch;
     }

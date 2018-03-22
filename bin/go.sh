@@ -17,7 +17,7 @@ function genIssuer() {
     echo "##### Generated primary key:"
     openssl ec -in $ISSUER_PRIVKEY -text -noout
 
-    # generate SCR
+    # generate CSR
     echo
     echo "##### Generating CSR"
     openssl req -new -subj "/C=PL/L=Machu Picchu/O=Issuers/OU=Testers/CN=foo.bar.pl" -sha256 -key $ISSUER_PRIVKEY -out $ISSUER_CSR
@@ -28,12 +28,17 @@ function genIssuer() {
     # generate SSC
     echo
     echo "##### Generating SSC."
-    openssl x509 -in $ISSUER_CSR -req -signkey $ISSUER_PRIVKEY -days 3650 -out $ISSUER_CERT
-    rm $ISSUER_CSR # we don't need this anymore
+    openssl x509 -in $ISSUER_CSR -req -signkey $ISSUER_PRIVKEY -sha256 -days 3650 -out $ISSUER_CERT
+    ## rm $ISSUER_CSR # we don't need this anymore
     cat $ISSUER_CERT
     echo "##### Generated SSC"
     openssl x509 -in $ISSUER_CERT -text -noout
 }
+
+function signMsg() {
+    
+}
+
 
 ################################################################################
 

@@ -25,18 +25,18 @@ void printResultBits(uint8_t *buf) {
     pc.printf("LEN(0x%02X)\n\r", buf[0]);
 
     // print data
-    pc.printf(" Wrd#   B#       B0    bits       B1    bits       B2    bits       B3    bits   \n\r");
-    pc.printf("============    ==== ========    ==== ========    ==== ========    ==== ========");
+    pc.printf(" Wrd#    B#        B0    bits       B1    bits       B2    bits       B3    bits   \n\r");
+    pc.printf("==============    ==== ========    ==== ========    ==== ========    ==== ========");
 
     for ( i=1, j=0; i<buf[0]-2; i++ ) {
         if( !((i-1)%4) ) {
-            pc.printf("\n\r[0x%02X;%02d-%02d]    ", j++, i-1, i+2);
+            pc.printf("\n\r[0x%02X;%03d-%03d]    ", j++, i-1, i+2);
         }
         pc.printf("0x%02X ", buf[i]);
         printBits( buf[i] );
         pc.printf("    ");
     }
-    pc.printf("\n\r--------------------------------------------------------------------------------\n\r");
+    pc.printf("\n\r----------------------------------------------------------------------------------\n\r");
     i = buf[0];
     pc.printf("CRC(0x%02X 0x%02X)", buf[i-2], buf[i-1]);
 }
